@@ -6,9 +6,9 @@
 using namespace std;
 
 const int N = 1024;
-double A[N][N], B[N][N], B_trans[N][N], C[N][N];
+float A[N][N], B[N][N], B_trans[N][N], C[N][N];
 
-void transpose(double* src, double* dst, const int rows, const int cols) {
+void transpose(float* src, float* dst, const int rows, const int cols) {
     // Regular sequential transpose without OpenMP
     for (int idx = 0; idx < rows * cols; idx++) {
         int i = idx / cols;
@@ -21,8 +21,8 @@ int main() {
     // Initialize matrices
     for (int i = 0; i < N; i++)
         for (int j = 0; j < N; j++) {
-            A[i][j] = (double)rand() / RAND_MAX;
-            B[i][j] = (double)rand() / RAND_MAX;
+            A[i][j] = (float)rand() / RAND_MAX;
+            B[i][j] = (float)rand() / RAND_MAX;
             C[i][j] = 0.0;
         }
 
@@ -37,7 +37,7 @@ int main() {
     // Matrix multiplication using transposed B
     for (int i = 0; i < N; i++)
         for (int j = 0; j < N; j++) {
-            double sum = 0.0;
+            float sum = 0.0;
             for (int k = 0; k < N; k++)
                 sum += A[i][k] * B_trans[j][k];
             C[i][j] = sum;
@@ -45,7 +45,7 @@ int main() {
 
     gettimeofday(&end, NULL);
 
-    double time_taken = (end.tv_sec - start.tv_sec) * 1e6;
+    float time_taken = (end.tv_sec - start.tv_sec) * 1e6;
     time_taken = (time_taken + (end.tv_usec - start.tv_usec)) * 1e-6;
 
     // gflops
