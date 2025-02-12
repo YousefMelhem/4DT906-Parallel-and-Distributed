@@ -1,27 +1,40 @@
 import random
-from tqdm import tqdm
-from time import time
+from time import monotonic
 
-n = 2000
+# N = 2048
+N = 256
 
-A = [[random.random()
-      for row in range(n)]
-     for col in range(n)]
+gflops = []
+times = []
 
-B = [[random.random()
-      for row in range(n)]
-     for col in range(n)]
+for i in range(10):
+    A = [[random.random()
+          for row in range(N)]
+         for col in range(N)]
 
-C = [[0 for row in range(n)]
-     for col in range(n)]
+    B = [[random.random()
+          for row in range(N)]
+         for col in range(N)]
 
-print("calculating ... \n")
+    C = [[0 for row in range(N)]
+         for col in range(N)]
 
-start = time()
-for i in tqdm(range(n)):
-    for j in range(n):
-        for k in range(n):
-            C[i][j] += A[i][k] * B[k][j]
-end = time()
+    print("calculating ... \n")
 
-print("%0.6f" % (end-start))
+    start = monotonic()
+    for i in range(N):
+        for j in range(N):
+            for k in range(N):
+                C[i][j] += A[i][k] * B[k][j]
+
+    end = monotonic()
+    s = end - start
+    gflops.append((N*N*2*N) / (s * 10**9))
+    times.append(s)
+
+    print(f"{sum(gflops)/len(gflops)} GFLOPS")
+    print(f"Time: {sum(times)/len(times)}")
+
+
+print(f"{sum(gflops)/len(gflops)} GFLOPS")
+print(f"Time: {sum(times)/len(times)}")
