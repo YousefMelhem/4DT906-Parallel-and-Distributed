@@ -9,7 +9,6 @@ const int N = 1024;
 float A[N][N], B[N][N], B_trans[N][N], C[N][N];
 
 void transpose(float* src, float* dst, const int rows, const int cols) {
-    // Regular sequential transpose without OpenMP
     for (int idx = 0; idx < rows * cols; idx++) {
         int i = idx / cols;
         int j = idx % cols;
