@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstdlib>
-#include <sys/time.h>
+#include <ctime>
 #include <iomanip>
 
 using namespace std;
@@ -25,12 +25,12 @@ int main() {
             C[i][j] = 0.0;
         }
 
-    struct timeval start, end;
+    struct timespec start, end;
 
     // Transpose B into B_trans
     transpose(&B[0][0], &B_trans[0][0], N, N);
 
-    gettimeofday(&start, NULL);
+    clock_gettime(CLOCK_MONOTONIC, &start);
     ios_base::sync_with_stdio(false);
 
     // Matrix multiplication using transposed B
@@ -42,10 +42,9 @@ int main() {
             C[i][j] = sum;
         }
 
-    gettimeofday(&end, NULL);
+    clock_gettime(CLOCK_MONOTONIC, &end);
 
-    float time_taken = (end.tv_sec - start.tv_sec) * 1e6;
-    time_taken = (time_taken + (end.tv_usec - start.tv_usec)) * 1e-6;
+    float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
 
     // gflops
     float gflops = (2.0 * N * N * N) / (1000000000.0 * time_taken);
