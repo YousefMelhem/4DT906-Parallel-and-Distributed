@@ -5,8 +5,9 @@
 
 using namespace std;
 
-const int N = 1024;
+const int N = 2048;
 float A[N][N], B[N][N], B_trans[N][N], C[N][N];
+
 
 void transpose(float* src, float* dst, const int rows, const int cols) {
     for (int idx = 0; idx < rows * cols; idx++) {
@@ -28,6 +29,9 @@ void print_matrix(float* matrix, const int rows, const int cols) {
 
 
 int main() {
+
+    const int blockSize=4; 
+
     // Initialize matrices
     for (int i = 0; i < N; i++){
         for (int j = 0; j < N; j++) {
@@ -47,14 +51,17 @@ int main() {
     ios_base::sync_with_stdio(false);
 
     // Matrix multiplication using transposed B
-    for (int i = 0; i < N; i++)
-        for (int j = 0; j < N; j++) {
-            float sum = 0.0;
-            for (int k = 0; k < N; k++)
-                sum += A[i][k] * B_trans[j][k];
-                // sum += A[i][k] * B[k][j];
-            C[i][j] = sum;
-        }
+    for(int bi=0; bi<N; bi+=blockSize)
+        for(int bj=0; bj<N; bj+=blockSize)
+            for(int bk=0; bk<N; bk+=blockSize)
+            
+                for (int i = 0; i < blockSize; i++){
+                    for (int j = 0; j < blockSize; j++) {
+                        for (int k = 0; k < blockSize; k++){
+                            C[bi + i][bj + j] += A[bi + i][bk + k] * B_trans[bj + j][bk + k];
+                        }
+                    }
+                }
 
     clock_gettime(CLOCK_MONOTONIC, &end);
 
