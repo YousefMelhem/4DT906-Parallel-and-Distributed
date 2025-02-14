@@ -142,7 +142,6 @@ int main() {
 
                             // vld1q_f32 loads 4 consecutive 32-bit floats from memory
                             // satrting at B_trans[(bj + j) * N + (bk + k)]
-                            
                             float32x4_t b = vld1q_f32(&B_trans[(bj + j) * N + (bk + k)]);
 
                             // vfmaq_f32 multiplies the a value with four b values,
