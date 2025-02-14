@@ -9,7 +9,6 @@ using namespace std;
 
 const int N = 8192*2*2;
 
-// static float A[N][N], B[N][N], B_trans[N][N], C[N][N];
 static float *A, *B, *B_trans, *C, *C_reference;
 
 
@@ -82,10 +81,21 @@ int main() {
     const int blockSize=32; 
 
     // dynamically alocatte memory
+    // 1D matrix
     A = new float[N * N];
     B = new float[N * N];
     B_trans = new float[N * N];
     C = new float[N * N];
+
+    // to further explain the above
+    // instead of using new float[N][N]'
+    // we isnetead use float[N]
+    // this is because 1D arrays are stored in memory more effecientrly
+    // and closer together (contiguous blocks of memory for he full matrix)
+    // So basically accesing 1D memory is generally faster
+
+    // to access A[y][x] in 1D matrix you would do A[x * N + y]
+    // x indexing the row, and y the column
 
     // Initialize matrices
     for (int i = 0; i < N; i++) {
@@ -95,8 +105,6 @@ int main() {
             C[i * N + j] = 0.0;
         }
     }
-
-
 
     struct timespec start, end;
 
@@ -108,15 +116,12 @@ int main() {
 
     int bi, bj, bk, i, j, k;
 
-    // Matrix multiplication using transposed B
-    // ading bi in the private loses me 3gflops
-    // some important links
-    // float32x4_t: this is a retrun type
-    // vld1q_f32: https://developer.arm.com/architectures/instruction-sets/intrinsics/#f:@navigationhierarchiessimdisa=[%5BNeon%5D]&f:@navigationhierarchiesreturnbasetype=[%5Bfloat%5D]&f:@navigationhierarchieselementbitsize=[%5B32%5D]&q=vld1q_f32
-    // vdupq_n_f32: https://developer.arm.com/architectures/instruction-sets/intrinsics/#f:@navigationhierarchiessimdisa=[%5BNeon%5D]&f:@navigationhierarchiesreturnbasetype=[%5Bfloat%5D]&f:@navigationhierarchieselementbitsize=[%5B32%5D]&q=vdupq_n_f32
-    // vfmaq_f32: https://developer.arm.com/architectures/instruction-sets/intrinsics/#f:@navigationhierarchiessimdisa=[Neon]&f:@navigationhierarchiesreturnbasetype=[float]&f:@navigationhierarchieselementbitsize=[32]&q=vfmaq_f32
-    // vst1q_f32: https://developer.arm.com/architectures/instruction-sets/intrinsics/#f:@navigationhierarchiessimdisa=[%5BNeon%5D]&f:@navigationhierarchiesreturnbasetype=[%5Bfloat%5D,float]&f:@navigationhierarchieselementbitsize=[%5B32%5D,32]&q=vst1q_f32
-    #pragma omp parallel for private(bj, bk, i, j, k) shared(A, B_trans, C)
+    // Mult
+    
+    // some important links for the ARM NEON instructions (vld1q_f32, vdupq_n_f32, vld1q_f32)
+    //  https://developer.arm.com/architectures/instruction-sets/intrinsics/
+    // should bi be in private or not?
+    #pragma omp parallel for private(bj, bk, i, j, k) shared(A, B_trans, C) 
     for(bi=0; bi<N; bi+=blockSize)
         for(bj=0; bj<N; bj+=blockSize)
             // prefetch the next block
@@ -126,23 +131,26 @@ int main() {
                 for (i = 0; i < blockSize; i++) {
                     for (j = 0; j < blockSize; j+=4) { // Process 4 elements at once with NEON, so we jump by 4
                         // the below types are NEON types
-                        // bascially float32x4_t is a vector of 4 floats (32 bits each)
-                        // vlq1q_f32 loads 4 floats into the float32x4_t vector
+                        // float32x4_t is a return type, a vector of 4 float32 values
+                        // vlq1q_f32 load the sum address
                         float32x4_t sum = vld1q_f32(&C[(bi + i) * N + (bj + j)]);
                         for (k = 0; k < blockSize; k++) {
-                            // vdubq_n_f32 creates a vector of 4 floats with the same value
+                            // vdubq_n_f32 createa a duplicate of of the asame vlue into ann array of 4
+                            // A[(bi + i) * N + (bk + k)] = 3.14 then a = [3.14, 3.14, 3.14, 3.14]
                             float32x4_t a = vdupq_n_f32(A[(bi + i) * N + (bk + k)]);
 
 
-                            // vld1q_f32 loads 4 floats into a vector
+                            // vld1q_f32 loads 4 consecutive 32-bit floats from memory
+                            // satrting at B_trans[(bj + j) * N + (bk + k)]
+                            
                             float32x4_t b = vld1q_f32(&B_trans[(bj + j) * N + (bk + k)]);
 
-
-                            // vfmaq_f32 multiplies 4 floats and adds them to another vector
+                            // vfmaq_f32 multiplies the a value with four b values,
+                            // so we are doing 4 operations at the same time
                             sum = vfmaq_f32(sum, a, b);
 
                         }
-                        // vst1q_f32 stores 4 floats from a vector to memory
+                        // vst1q_f32 stores the resuts at the C address
                         vst1q_f32(&C[(bi + i) * N + (bj + j)], sum);
 
                     }
