@@ -18,7 +18,7 @@ void transpose(float* src, float* dst, const int rows, const int cols) {
     }
 }
 
-// check if the matrix is transposed correctly
+// check if the matrix is transposed correctly by printing
 void print_matrix(float* matrix, const int rows, const int cols) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++)
@@ -54,6 +54,7 @@ int main() {
     int bi, bj, bk, i, j, k;
 
     // Matrix multiplication using transposed B
+    // ading bi in the private loses me 3gflops
     #pragma omp parallel for private(bj, bk, i, j, k) shared(A, B_trans, C)
     for(bi=0; bi<N; bi+=blockSize)
         for(bj=0; bj<N; bj+=blockSize)
@@ -69,6 +70,7 @@ int main() {
 
     clock_gettime(CLOCK_MONOTONIC, &end);
 
+    // monitic time holds two values, tv_sec and tv_nsec, must add both
     float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
 
     // gflops

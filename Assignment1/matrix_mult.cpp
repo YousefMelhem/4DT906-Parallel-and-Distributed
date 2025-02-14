@@ -58,6 +58,7 @@ int main() {
 
     clock_gettime(CLOCK_MONOTONIC, &end);
 
+ 
     float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
 
     // gflops
