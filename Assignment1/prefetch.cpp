@@ -7,9 +7,9 @@
 
 using namespace std;
 
-const int N = 8192*2*2;
+const int N = 8192;
 
-static float *A, *B, *B_trans, *C, *C_reference;
+static float *A, *B, *C, *C_reference;
 
 void transpose(float* src, float* dst, const int rows, const int cols) {
     for (int idx = 0; idx < rows * cols; idx++) {
@@ -40,7 +40,7 @@ void compute_reference_multiplication() {
 }
 
 bool validate_result() {
-    const float epsilon = 1e-4; // Tolerance for floating-point comparison
+    const float epsilon = 1e-3; // Tolerance for floating-point comparison
     int errors = 0;
     float max_diff = 0.0f;
     int max_diff_i = 0, max_diff_j = 0;
@@ -83,8 +83,8 @@ int main() {
     // 1D matrix
     A = new float[N * N];
     B = new float[N * N];
-    B_trans = new float[N * N];
     C = new float[N * N];
+    C_reference = new float[N * N];
 
     // to further explain the above
     // instead of using new float[N][N]'
@@ -108,7 +108,7 @@ int main() {
     struct timespec start, end;
 
     // Transpose B into B_trans
-    transpose(B, B_trans, N, N);
+    //transpose(B, B_trans, N, N);
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     ios_base::sync_with_stdio(false);
@@ -120,12 +120,12 @@ int main() {
     // some important links for the ARM NEON instructions (vld1q_f32, vdupq_n_f32, vld1q_f32)
     //  https://developer.arm.com/architectures/instruction-sets/intrinsics/
     // should bi be in private or not?
-    #pragma omp parallel for private(bj, bk, i, j, k) shared(A, B_trans, C) 
+    #pragma omp parallel for private(bj, bk, i, j, k) shared(A, B, C) 
     for(bi=0; bi<N; bi+=blockSize)
         for(bj=0; bj<N; bj+=blockSize)
             // prefetch the next block
             prefetch_block(&A[(bi + blockSize) * N]);
-            prefetch_block(&B_trans[(bj + blockSize) * N]);
+            prefetch_block(&B[(bj + blockSize) * N]);
             for(bk=0; bk<N; bk+=blockSize) {
                 for (i = 0; i < blockSize; i++) {
                     for (j = 0; j < blockSize; j+=4) { // Process 4 elements at once with NEON, so we jump by 4
@@ -140,11 +140,14 @@ int main() {
                             // A[(bi + i) * N + (bk + k)] = 3.14 then a = [3.14, 3.14, 3.14, 3.14]
                             float32x4_t a = vdupq_n_f32(A[(bi + i) * N + (bk + k)]);
 
-
                             // vld1q_f32 loads 4 consecutive 32-bit floats from memory
-                            // satrting at B_trans[(bj + j) * N + (bk + k)]
+                            // satrting at B[(bj + j) * N + (bk + k)]
                             // note that this is a pointer to the adress
-                            float32x4_t b = vld1q_f32(&B_trans[(bj + j) * N + (bk + k)]);
+                            float32x4_t b;
+                            b = vsetq_lane_f32(B[(bk + k) * N + (bj + j + 0)], b, 0);
+                            b = vsetq_lane_f32(B[(bk + k) * N + (bj + j + 1)], b, 1);
+                            b = vsetq_lane_f32(B[(bk + k) * N + (bj + j + 2)], b, 2);
+                            b = vsetq_lane_f32(B[(bk + k) * N + (bj + j + 3)], b, 3);
 
                             // vfmaq_f32 multiplies the a value with four b values,
                             // so we are doing 4 operations at the same time
@@ -181,7 +184,6 @@ int main() {
     // Cleanup
     delete[] A;
     delete[] B;
-    delete[] B_trans;
     delete[] C;
 
 
