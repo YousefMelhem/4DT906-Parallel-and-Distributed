@@ -11,7 +11,6 @@ const int N = 8192*2*2;
 
 static float *A, *B, *B_trans, *C, *C_reference;
 
-
 void transpose(float* src, float* dst, const int rows, const int cols) {
     for (int idx = 0; idx < rows * cols; idx++) {
         int i = idx / cols;
@@ -132,7 +131,9 @@ int main() {
                     for (j = 0; j < blockSize; j+=4) { // Process 4 elements at once with NEON, so we jump by 4
                         // the below types are NEON types
                         // float32x4_t is a return type, a vector of 4 float32 values
-                        // vlq1q_f32 load the sum address
+                        
+                        // vlq1q_f32 load the 4 consective values from
+                        // the address that holds C
                         float32x4_t sum = vld1q_f32(&C[(bi + i) * N + (bj + j)]);
                         for (k = 0; k < blockSize; k++) {
                             // vdubq_n_f32 createa a duplicate of of the asame vlue into ann array of 4
@@ -142,6 +143,7 @@ int main() {
 
                             // vld1q_f32 loads 4 consecutive 32-bit floats from memory
                             // satrting at B_trans[(bj + j) * N + (bk + k)]
+                            // note that this is a pointer to the adress
                             float32x4_t b = vld1q_f32(&B_trans[(bj + j) * N + (bk + k)]);
 
                             // vfmaq_f32 multiplies the a value with four b values,
