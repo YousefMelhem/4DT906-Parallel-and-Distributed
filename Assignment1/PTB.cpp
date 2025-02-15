@@ -34,6 +34,7 @@ void print_matrix(float* matrix, const int rows, const int cols) {
 
 int main() {
     const int blockSize=16; 
+
     // stop this idea from George
     // Initialize matrices by reading A and B from /tmp/matmul
     FILE *f = fopen("/tmp/matmul", "rb");
