@@ -10,8 +10,7 @@ using namespace std;
 
 const int N = 512*2;
 
-float A[N][N], B[N][N], C[N][N], Cvals[N][N];
-float B_trans[N][N];  // Added declaration for B_trans
+float A[N][N], B[N][N], C[N][N], Cvals[N][N], B_trans[N][N];
 
 void transpose(float* src, float* dst, const int rows, const int cols) {
     for (int idx = 0; idx < rows * cols; idx++) {
@@ -31,6 +30,7 @@ void print_matrix(float* matrix, const int rows, const int cols) {
     }
     cout << endl;
 }
+
 
 int main() {
     const int blockSize=16; 
