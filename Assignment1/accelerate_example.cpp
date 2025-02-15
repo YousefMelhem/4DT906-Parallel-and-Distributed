@@ -2,12 +2,11 @@
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
-#include <omp.h>
 #include <Accelerate/Accelerate.h>
 
 using namespace std;
 
-const int N = 8192*2;
+const int N = 8192;
 static float *A, *B, *B_trans, *C;
 
 void transpose(float* src, float* dst, const int rows, const int cols) {
@@ -39,28 +38,29 @@ int main() {
     struct timespec start, end;
 
     // Transpose B into B_trans
-    transpose(B, B_trans, N, N);
+    // transpose(B, B_trans, N, N);
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     ios_base::sync_with_stdio(false);
 
     // Matrix multiplication using vDSP
-    vDSP_mmul(A,        // First input matrix
-              1,        // Stride for matrix A
-              B_trans,  // Second input matrix (transposed)
-              1,        // Stride for matrix B_trans
-              C,        // Output matrix
-              1,        // Stride for matrix C
-              N, N, N); // Dimensions (M, N, K)
+    // https://developer.apple.com/documentation/accelerate/1449984-vdsp_mmul
+    vDSP_mmul(A,
+              1,
+              B_trans,
+              1, 
+              C,
+              1,
+              N, N, N);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
 
     float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
-    float tflops = (2.0 * N * N * N) / (1000000000000.0 * time_taken);
+    float tflops = (2.0 * N * N * N) / (1000000000.0 * time_taken);
 
     cout << "N: " << N << endl;
     cout << "Time taken by program is : " << fixed << time_taken << setprecision(6) << " sec" << endl;
-    cout << "TFLOPS: " << fixed << tflops << setprecision(6) << endl;
+    cout << "GFLOPS: " << fixed << tflops << setprecision(6) << endl;
 
     // Cleanup
     free(A);

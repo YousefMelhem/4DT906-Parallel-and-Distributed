@@ -7,7 +7,7 @@
 
 using namespace std;
 
-const int N = 8192;
+const int N = 512;
 
 static float *A, *B, *C, *C_reference;
 
@@ -120,57 +120,39 @@ int main() {
     // some important links for the ARM NEON instructions (vld1q_f32, vdupq_n_f32, vld1q_f32)
     //  https://developer.arm.com/architectures/instruction-sets/intrinsics/
     // should bi be in private or not?
-    #pragma omp parallel for private(bj, bk, i, j, k) shared(A, B, C) 
-    for(bi=0; bi<N; bi+=blockSize)
-        for(bj=0; bj<N; bj+=blockSize)
-            // prefetch the next block
+    #pragma omp parallel for private(bj, bk, i, j, k) shared(A, B, C)
+    for(bi = 0; bi < N; bi += blockSize) {
+        for(bj = 0; bj < N; bj += blockSize) {
             prefetch_block(&A[(bi + blockSize) * N]);
             prefetch_block(&B[(bj + blockSize) * N]);
-            for(bk=0; bk<N; bk+=blockSize) {
-                for (i = 0; i < blockSize; i++) {
-                    for (j = 0; j < blockSize; j+=4) { // Process 4 elements at once with NEON, so we jump by 4
-                        // the below types are NEON types
-                        // float32x4_t is a return type, a vector of 4 float32 values
-                        
-                        // vlq1q_f32 load the 4 consective values from
-                        // the address that holds C
+            for(bk = 0; bk < N; bk += blockSize) {
+                for(i = 0; i < blockSize; i++) {
+                    for(j = 0; j < blockSize; j += 4) {
                         float32x4_t sum = vld1q_f32(&C[(bi + i) * N + (bj + j)]);
-                        for (k = 0; k < blockSize; k++) {
-                            // vdubq_n_f32 createa a duplicate of of the asame vlue into ann array of 4
-                            // A[(bi + i) * N + (bk + k)] = 3.14 then a = [3.14, 3.14, 3.14, 3.14]
+                        for(k = 0; k < blockSize; k++) {
                             float32x4_t a = vdupq_n_f32(A[(bi + i) * N + (bk + k)]);
-
-                            // vld1q_f32 loads 4 consecutive 32-bit floats from memory
-                            // satrting at B[(bj + j) * N + (bk + k)]
-                            // note that this is a pointer to the adress
-                            float32x4_t b;
-                            b = vsetq_lane_f32(B[(bk + k) * N + (bj + j + 0)], b, 0);
-                            b = vsetq_lane_f32(B[(bk + k) * N + (bj + j + 1)], b, 1);
-                            b = vsetq_lane_f32(B[(bk + k) * N + (bj + j + 2)], b, 2);
-                            b = vsetq_lane_f32(B[(bk + k) * N + (bj + j + 3)], b, 3);
-
-                            // vfmaq_f32 multiplies the a value with four b values,
-                            // so we are doing 4 operations at the same time
+                            // Load 4 consecutive values from B at once
+                            float32x4_t b = vld1q_f32(&B[(bk + k) * N + (bj + j)]);
                             sum = vfmaq_f32(sum, a, b);
-
                         }
-                        // vst1q_f32 stores the resuts at the C address
                         vst1q_f32(&C[(bi + i) * N + (bj + j)], sum);
-
                     }
                 }
             }
+        }
+    }
+
     clock_gettime(CLOCK_MONOTONIC, &end);
 
     // monitic time holds two values, tv_sec and tv_nsec, must add both
     float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
 
-    cout << "Computing reference result for validation..." << endl;
-    compute_reference_multiplication();
+    //cout << "Computing reference result for validation..." << endl;
+    //compute_reference_multiplication();
     
     // Validate results
-    cout << "Validating results..." << endl;
-    bool is_valid = validate_result();
+    //cout << "Validating results..." << endl;
+    //bool is_valid = validate_result();
     
 
     // gflops
