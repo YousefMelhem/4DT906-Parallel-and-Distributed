@@ -64,8 +64,12 @@ int main() {
     // gflops
     float gflops = (2.0 * N * N * N) / (1000000000.0 * time_taken);
 
-    cout << "Time taken by program is : " << fixed << time_taken << setprecision(6) << " sec" << endl;
     cout << "GFLOPS: " << fixed << gflops << setprecision(6) << endl;
+    cout << "|" << endl;
+    cout << "t: " << fixed << time_taken << setprecision(6) << endl;
+    cout << "|" << endl;
+    cout << "N: " << N << endl;
+    cout << "|" << endl;
 
 
     return 0;

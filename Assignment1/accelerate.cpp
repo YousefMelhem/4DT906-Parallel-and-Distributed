@@ -58,9 +58,12 @@ int main() {
     float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
     float tflops = (2.0 * N * N * N) / (1000000000.0 * time_taken);
 
-    cout << "N: " << N << endl;
-    cout << "Time taken by program is : " << fixed << time_taken << setprecision(6) << " sec" << endl;
     cout << "GFLOPS: " << fixed << tflops << setprecision(6) << endl;
+    cout << "|" << endl;
+    cout << "s: " << fixed << time_taken << setprecision(6) << " sec" << endl;
+    cout << "|" << endl;
+    cout << "N: " << N << endl;
+    cout << "|" << endl;
 
     // Cleanup
     free(A);

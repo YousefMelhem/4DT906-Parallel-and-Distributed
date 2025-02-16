@@ -6,7 +6,7 @@ import numpy as np
 
 os.environ['OMP_NUM_THREADS'] = '4'
 
-N = 512*2
+N = 1024
 if __name__ == "__main__":
     # N^2
     A = np.random.randn(N, N).astype(np.float32)
