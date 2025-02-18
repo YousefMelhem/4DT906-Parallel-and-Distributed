@@ -1,28 +1,23 @@
 #!/bin/bash
 # Usage: ./run_all.sh
-# This script compiles and runs all .cpp and .py files in the current directory,
+# This script compiles and runs all .cpp and .py files in the specified order,
 # except for "gemm.py". It outputs the results in a formatted table.
 
 mkdir -p compiled
 
 # Arrays to store file names and outputs for the table
-declare -a files
+declare -a files=("matrix_mult.py" "st_np_matmul.py" "np_matmul.py" "matrix_mult.cpp" "st_PTB1D.cpp"
+            "st_PTB16.cpp" "PTB1D.cpp" "PTB4.cpp" "PTB8.cpp" "PTB16.cpp" "PTB32.cpp" "PTB64.cpp" "accelerate.cpp") 
 declare -a outputs
 
-# Loop over all .cpp and .py files in the current directory
-for file in *.cpp *.py; do
-  # Skip if no matching files exist
-  if [[ "$file" == "*.cpp" || "$file" == "*.py" ]]; then
-    continue
-  fi
-
+# Loop through the files in the custom order
+for file in "${files[@]}"; do
   # Skip gemm.py for Python files
   if [[ "$file" == "gemm.py" ]]; then
     echo "Skipping $file"
     continue
   fi
 
-  files+=("$file")
   ext="${file##*.}"
   echo "=== Processing $file ($ext) ==="
 
@@ -38,7 +33,6 @@ for file in *.cpp *.py; do
 
     if [ -f "compiled/$base" ]; then
       prog_output=$(./compiled/"$base")
-      # Convert newlines to spaces for single-line output
       single_line=$(echo "$prog_output" | tr '\n' ' ')
       outputs+=("$single_line")
     else

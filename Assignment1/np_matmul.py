@@ -1,7 +1,7 @@
 import numpy as np
 from time import monotonic
 
-N = 512
+N = 1024
 
 A = np.random.random((N, N))
 B = np.random.random((N, N))

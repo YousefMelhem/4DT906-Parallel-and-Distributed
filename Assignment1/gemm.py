@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     for i in range(10):
         st = time.monotonic()
-        C = A @ B.T
+        Cvals = A @ B.T
         et = time.monotonic()
         s = et-st
         print(f"{flop/s * 1e-9:.2f} GFLOP/S, {s*1e3:.2f} ms")
@@ -27,4 +27,4 @@ if __name__ == "__main__":
     with open("/tmp/matmul", "wb") as f:
         f.write(A.data)
         f.write(B.data)
-        f.write(C.data)
+        f.write(Cvals.data)

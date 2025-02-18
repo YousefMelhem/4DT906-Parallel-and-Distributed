@@ -6,12 +6,18 @@
 
 using namespace std;
 
+// parallel, transposed, blocking
+
 // A[y][x] 
 // A[x * N + y]
 
 // make sure to run gemm.py with N=1024 to generate /tmp/matmul
+
+// problem with the validation and different sizes from gemm.py
+// look into ABOVE ^^^^^^^^
+
 const int N = 1024;
-const int blockSize=16; 
+const int blockSize=8; 
 
 // will making these 1D arrays make it faster?  
 float A[N][N], B[N][N], C[N][N], Cvals[N][N], B_trans[N][N];
@@ -44,23 +50,26 @@ void gemm_omp(){
         for(bj=0; bj<N; bj+=blockSize)
             for(bk=0; bk<N; bk+=blockSize)
 
-                for (i = 0; i < blockSize; i++){
+                for (i = 0; i < blockSize; i++) {
                     for (j = 0; j < blockSize; j++) {
                         for (k = 0; k < blockSize; k++){
+                            // loop unrolling 
                             C[bi + i][bj + j] += A[bi + i][bk + k] * B_trans[bk + k][bj + j];
                         }
+                        
                     }
                 }
 }
 
 
-
 int main() {
 
-    // stop this idea from George
+    // stole this idea from George
+
     // Initialize matrices by reading A and B from /tmp/matmul
     FILE *f = fopen("/tmp/matmul", "rb");
     if (f == nullptr) {
+
         cout << "please pregenerate python /tmp/matmul file" << endl;
         return -1;
         // check A and B match from /tmp/matmul
@@ -69,7 +78,8 @@ int main() {
     fread(B, 1, sizeof(float)*N*N, f);
     fread(Cvals, 1, sizeof(float)*N*N, f);
     fclose(f);
-    
+
+
     struct timespec start, end;
 
     // Transpose B into B_trans
@@ -97,9 +107,9 @@ int main() {
     // read actuall Cvals from /tmp/matmul and compare with C
     for (int y = 0; y < N; y++) {
         for (int x = 0; x < N; x++) {
-            if (abs(C[y][x] - Cvals[y][x]) > 0.001) {
+            if (abs(Cvals[y][x] - C[y][x]) > 0.001) {
                 cout << "mismatch at " << y << " " << x << endl;
-                cout << C[y][x] << " " << Cvals[y][x] << endl;
+                cout << Cvals[y][x] << " " << C[y][x] << endl;
                 return -1;
             }
         }

@@ -59,7 +59,6 @@ int main() {
     int bi, bj, bk, i, j, k;
     // Matrix multiplication using transposed B
     // ading bi in the private loses me 3gflops
-    #pragma omp parallel for private(bj, bk, i, j, k) shared(A, B_trans, C)
     for(bi=0; bi<N; bi+=blockSize)
         for(bj=0; bj<N; bj+=blockSize)
             for(bk=0; bk<N; bk+=blockSize)

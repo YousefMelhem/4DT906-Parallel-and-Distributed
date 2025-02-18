@@ -4,7 +4,7 @@ from threadpoolctl import threadpool_limits
 
 with threadpool_limits(limits=1):
     # N = 4096
-    N = 512
+    N = 1024
 
     A = np.random.random((N, N))
     B = np.random.random((N, N))
@@ -17,5 +17,7 @@ with threadpool_limits(limits=1):
     s = end - start
 
     print(f"GFLPOS: {((N*N*2*N) / (s * 10**9)):.6f}")
+    print("|")
     print(f"t: {s:.6f}")
+    print("|")
     print(f"N: {N}")

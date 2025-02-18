@@ -25,7 +25,7 @@ for i in range(N):
 end = monotonic()
 s = end - start
 
-print(f"GFLOPS {((N*N*2*N) / (s * 10**9)):.6f}")
+print(f"GFLOPS: {((N*N*2*N) / (s * 10**9)):.6f}")
 print("|")
 print(f"t: {s:.6f}")
 print("|")
