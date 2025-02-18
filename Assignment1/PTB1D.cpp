@@ -8,7 +8,7 @@ using namespace std;
 // A[y][x] 
 // A[x * N + y]
 
-const int N = 512*2;
+const int N = 1024;
 const int blockSize=16; 
 
 // will making these 1D arrays make it faster?  
@@ -35,7 +35,6 @@ void print_matrix(float* matrix, const int rows, const int cols) {
 
 
 int main() {
-
     // stop this idea from George
     // Initialize matrices by reading A and B from /tmp/matmul
     FILE *f = fopen("/tmp/matmul", "rb");
