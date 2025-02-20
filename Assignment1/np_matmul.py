@@ -1,19 +1,20 @@
 import numpy as np
 from time import monotonic
 
-N = 1024
+N = 1024*2
 
 A = np.random.random((N, N))
 B = np.random.random((N, N))
 
-start = monotonic()
+for i in range(10):
+    start = monotonic()
+    C = A @ B
+    end = monotonic()
 
-C = A @ B
+    s = end - start
 
-end = monotonic()
-s = end - start
+    print(f"GFLOPS: {((N*N*2*N) / (s * 10**9)):.6f}")
 
-print(f"GFLOPS: {((N*N*2*N) / (s * 10**9)):.6f}")
 print("|")
 print(f"t: {s:.6f}")
 print("|")

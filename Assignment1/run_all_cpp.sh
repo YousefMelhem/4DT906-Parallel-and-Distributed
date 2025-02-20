@@ -6,8 +6,8 @@
 mkdir -p compiled
 
 # Arrays to store file names and outputs for the table
-declare -a files=("matrix_mult.py" "st_np_matmul.py" "np_matmul.py" "matrix_mult.cpp" "st_PTB1D.cpp"
-            "st_PTB16.cpp" "PTB1D.cpp" "PTB4.cpp" "PTB8.cpp" "PTB16.cpp" "PTB32.cpp" "PTB64.cpp" "accelerate.cpp") 
+declare -a files=("st_matrix_mult.py" "st_np_matmul.py" "np_matmul.py" "matrix_mult.cpp"
+             "PTB.cpp" "PTBU.cpp" "PTBU_grok.cpp" "accelerate.cpp") 
 declare -a outputs
 
 # Loop through the files in the custom order
