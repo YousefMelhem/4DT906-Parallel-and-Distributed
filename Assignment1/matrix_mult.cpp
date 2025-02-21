@@ -5,7 +5,7 @@
 
 using namespace std;
 
-const int N = 1024;
+const int N = 1024*2;
 float A[N][N], B[N][N], B_trans[N][N], C[N][N];
 
 void transpose(float* src, float* dst, const int rows, const int cols) {

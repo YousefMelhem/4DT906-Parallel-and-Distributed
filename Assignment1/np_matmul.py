@@ -1,10 +1,10 @@
 import numpy as np
 from time import monotonic
 
-N = 1024
+N = 2048*2
 
-A = np.random.random((N, N))
-B = np.random.random((N, N))
+A = np.random.random((N, N)).astype(np.float32)
+B = np.random.random((N, N)).astype(np.float32)
 
 start = monotonic()
 
