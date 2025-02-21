@@ -85,24 +85,17 @@ int main() {
     // Transpose B into B_trans
     transpose(&B[0][0], &B_trans[0][0], N, N);
 
-    clock_gettime(CLOCK_MONOTONIC, &start);
-    
-    gemm_omp();
+    for (int i = 0; i < 10; i++) {
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        gemm_omp();
+        clock_gettime(CLOCK_MONOTONIC, &end);
 
-    clock_gettime(CLOCK_MONOTONIC, &end);
+        float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+        float gflops = (2.0 * N * N * N) / (1000000000.0 * time_taken);
+        cout << "GFLOPS: " << fixed << gflops << setprecision(6) << endl;
+    }
 
-    // monitic time holds two values, tv_sec and tv_nsec, must add both
-    float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
-
-    // gflops
-    float gflops = (2.0 * N * N * N) / (1000000000.0 * time_taken);
-    cout << "GFLOPS: " << fixed << gflops << setprecision(6) << endl;
-    cout << "|" << endl;
-    cout << "t: " << fixed << time_taken << setprecision(6) << endl;
-    cout << "|" << endl;
-    cout << "N: " << N << endl;
-    cout << "|" << endl;
-    
+   
     // validation
     // read actuall Cvals from /tmp/matmul and compare with C
     for (int y = 0; y < N; y++) {
