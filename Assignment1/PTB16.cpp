@@ -16,7 +16,7 @@ using namespace std;
 // problem with the validation and different sizes from gemm.py
 // look into ABOVE ^^^^^^^^
 
-const int N = 1024;
+const int N = 1024*2;
 const int blockSize=16; 
 
 // will making these 1D arrays make it faster?  
@@ -53,8 +53,7 @@ void gemm_omp(){
                 for (i = 0; i < blockSize; i++) {
                     for (j = 0; j < blockSize; j++) {
                         for (k = 0; k < blockSize; k++){
-                            // loop unrolling 
-                            C[bi + i][bj + j] += A[bi + i][bk + k] * B_trans[bk + k][bj + j];
+                            C[bi + i][bj + j] += A[bi + i][bk + k] * B_trans[bj + j][bk + k];
                         }
                         
                     }

@@ -5,7 +5,7 @@
 
 using namespace std;
 
-const int N = 1024;
+const int N = 1024*2;
 const int blockSize = 16;
                   
 float A[N][N], B[N][N], B_trans[N][N], C[N][N], Cvals[N][N];
@@ -28,27 +28,30 @@ void print_matrix(float* matrix, const int rows, const int cols) {
     cout << endl;
 }
 
-void gemm_omp() {
+void gemm_omp(){
     int bi, bj, bk, i, j, k;
+    // Matrix multiplication using transposed B
+    // ading bi in the private loses me 3gflops
     #pragma omp parallel for private(bj, bk, i, j, k) shared(A, B_trans, C)
     for(bi=0; bi<N; bi+=blockSize)
         for(bj=0; bj<N; bj+=blockSize)
             for(bk=0; bk<N; bk+=blockSize)
-                for (i = 0; i < blockSize; i++)
-                    for (j = 0; j < blockSize; j++){
-                    float sum = 0.0f;
-                        for (k = 0; k < blockSize; k += 4) {
-                            sum += A[bi + i][bk + k] * B_trans[bj + j][bk + k];
-                            sum += A[bi + i][bk + k + 1] * B_trans[bj + j][bk + k + 1];
-                            sum += A[bi + i][bk + k + 2] * B_trans[bj + j][bk + k + 2];
-                            sum += A[bi + i][bk + k + 3] * B_trans[bj + j][bk + k + 3];
+
+                for (i = 0; i < blockSize; i++) {
+                    for (j = 0; j < blockSize; j++) {
+                        for (k = 0; k < blockSize; k += 4){
+                            C[bi + i][bj + j] += A[bi + i][bk + k] * B_trans[bj + j][bk + k];
+                            C[bi + i][bj + j] += A[bi + i][bk + k + 1] * B_trans[bj + j][bk + k + 1];
+                            C[bi + i][bj + j] += A[bi + i][bk + k + 2] * B_trans[bj + j][bk + k + 2];
+                            C[bi + i][bj + j] += A[bi + i][bk + k + 3] * B_trans[bj + j][bk + k + 3];
                         }
-                    C[bi + i][bj + j] += sum;
+                        
                     }
+                }
 }
 
 
-#define RUN_COUNT 1
+#define RUN_COUNT 10
 
 int main() {
     FILE *f = fopen("/tmp/matmul", "rb");
@@ -100,8 +103,9 @@ int main() {
                 return -1;
             }
         }
-        cout << "Output verified!" << endl;
     }
+
+    cout << "Output verified!" << endl;
     #endif
     return 0;
 }

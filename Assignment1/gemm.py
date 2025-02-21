@@ -1,28 +1,13 @@
 #!/usr/bin/env python3
-import os
-import time
 import numpy as np
 
 
-os.environ['OMP_NUM_THREADS'] = '4'
-
-N = 1024*2
+N = 1024
 if __name__ == "__main__":
-    # N^2
     A = np.random.randn(N, N).astype(np.float32)
-    # N^2
     B = np.random.randn(N, N).astype(np.float32)
 
-    # 2N compute in N^2 output cells
-    flop = 2*N*N*N
-    # print(f"{flop / 1e9:.2f} GFLOP")
-
-    for i in range(10):
-        st = time.monotonic()
-        Cvals = A @ B
-        et = time.monotonic()
-        s = et-st
-        print(f"{flop/s * 1e-9:.2f} GFLOP/S, {s*1e3:.2f} ms")
+    Cvals = A @ B
 
     with open("/tmp/matmul", "wb") as f:
         f.write(A.data)
