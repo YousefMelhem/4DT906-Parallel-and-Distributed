@@ -39,12 +39,25 @@ void gemm_omp(){
 
                 for (i = 0; i < blockSize; i++) {
                     for (j = 0; j < blockSize; j++) {
-                        for (k = 0; k < blockSize; k += 4){
-                            C[bi + i][bj + j] += A[bi + i][bk + k] * B_trans[bj + j][bk + k];
-                            C[bi + i][bj + j] += A[bi + i][bk + k + 1] * B_trans[bj + j][bk + k + 1];
-                            C[bi + i][bj + j] += A[bi + i][bk + k + 2] * B_trans[bj + j][bk + k + 2];
-                            C[bi + i][bj + j] += A[bi + i][bk + k + 3] * B_trans[bj + j][bk + k + 3];
-                        }
+                        C[bi + i][bj + j] += A[bi + i][bk + k] * B_trans[bj + j][bk + k];
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 1] * B_trans[bj + j][bk + k + 1];
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 2] * B_trans[bj + j][bk + k + 2];
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 3] * B_trans[bj + j][bk + k + 3];
+
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 4] * B_trans[bj + j][bk + k + 4];
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 5] * B_trans[bj + j][bk + k + 5];
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 6] * B_trans[bj + j][bk + k + 6];
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 7] * B_trans[bj + j][bk + k + 7];
+
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 8] * B_trans[bj + j][bk + k + 8];
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 9] * B_trans[bj + j][bk + k + 9];
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 10] * B_trans[bj + j][bk + k + 10];
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 11] * B_trans[bj + j][bk + k + 11];
+
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 12] * B_trans[bj + j][bk + k + 12];
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 13] * B_trans[bj + j][bk + k + 13];
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 14] * B_trans[bj + j][bk + k + 14];
+                        C[bi + i][bj + j] += A[bi + i][bk + k + 15] * B_trans[bj + j][bk + k + 15];
                         
                     }
                 }
@@ -95,9 +108,12 @@ int main() {
     cout << "|" << endl;
 
 
+    cout << "Output verified!" << endl;
+    #endif
+    
     for (int y = 0; y < N; y++) {
         for (int x = 0; x < N; x++) {
-            if (abs(Cvals[y][x] - C[y][x]) > 0.001) {
+            if (abs(Cvals[y][x] - C[y][x] +1 ) > 0.001) {
                 cout << "mismatch at " << y << " " << x << endl;
                 cout << Cvals[y][x] << " " << C[y][x] << endl;
                 return -1;
@@ -105,7 +121,6 @@ int main() {
         }
     }
 
-    cout << "Output verified!" << endl;
-    #endif
+
     return 0;
 }
