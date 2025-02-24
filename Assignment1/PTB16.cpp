@@ -16,7 +16,7 @@ using namespace std;
 // problem with the validation and different sizes from gemm.py
 // look into ABOVE ^^^^^^^^
 
-const int N = 1024*2;
+const int N = 2048;
 const int blockSize=16; 
 
 // will making these 1D arrays make it faster?  
@@ -61,42 +61,67 @@ void gemm_omp(){
 }
 
 
-int main() {
-
-    // stole this idea from George
-
-    // Initialize matrices by reading A and B from /tmp/matmul
+void fetchMat() {
     FILE *f = fopen("/tmp/matmul", "rb");
     if (f == nullptr) {
-
         cout << "please pregenerate python /tmp/matmul file" << endl;
-        return -1;
-        // check A and B match from /tmp/matmul
+        exit(1);
     }
+    // the saved matricies in the order of A, B, C (has to match the order in gemm.py)
     fread(A, 1, sizeof(float)*N*N, f);
     fread(B, 1, sizeof(float)*N*N, f);
     fread(Cvals, 1, sizeof(float)*N*N, f);
     fclose(f);
+}
 
 
+
+#define RUN_COUNT 10
+
+int main() {
+    fetchMat();
     struct timespec start, end;
 
-    // Transpose B into B_trans
     transpose(&B[0][0], &B_trans[0][0], N, N);
 
-    for (int i = 0; i < 10; i++) {
+    #if RUN_COUNT == 1
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    gemm_omp();
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    #else
+
+    for (int i = 0; i < RUN_COUNT; i++) {
+        // Reset C to zero
+        #pragma omp parallel for collapse(2)
+        for (int y = 0; y < N; y++) {
+            for (int x = 0; x < N; x++) {
+                C[y][x] = 0.0f;
+            }
+        }
+
         clock_gettime(CLOCK_MONOTONIC, &start);
         gemm_omp();
         clock_gettime(CLOCK_MONOTONIC, &end);
-
         float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
         float gflops = (2.0 * N * N * N) / (1000000000.0 * time_taken);
-        cout << "GFLOPS: " << fixed << gflops << setprecision(6) << endl;
-    }
+        cout << "GFLOPS: " << fixed << setprecision(6) << gflops << endl;
 
-   
-    // validation
-    // read actuall Cvals from /tmp/matmul and compare with C
+    }
+    #endif
+
+    #if RUN_COUNT == 1
+    float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+    float gflops = (2.0 * N * N * N) / (1000000000.0 * time_taken);
+    cout << "GFLOPS: " << fixed << setprecision(6) << gflops << endl;
+    cout << "|" << endl;
+    cout << "t: " << fixed << setprecision(6) << time_taken << endl;
+    cout << "|" << endl;
+    cout << "N: " << N << endl;
+    cout << "|" << endl;
+
+    cout << "Output verified!" << endl;
+    #endif
+
     for (int y = 0; y < N; y++) {
         for (int x = 0; x < N; x++) {
             if (abs(Cvals[y][x] - C[y][x]) > 0.001) {
@@ -106,5 +131,8 @@ int main() {
             }
         }
     }
+
+
+
     return 0;
 }
