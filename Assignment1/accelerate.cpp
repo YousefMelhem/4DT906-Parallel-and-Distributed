@@ -7,23 +7,14 @@
 using namespace std;
 
 const int N = 8192;
-static float *A, *B, *B_trans, *C;
+static float *A, *B, *C;
+    // Number of rows in source/columns in destination
 
-void transpose(float* src, float* dst, const int rows, const int cols) {
-    // Use vDSP for transpose
-    vDSP_mtrans(src,         // Source matrix
-                1,           // Source matrix row stride
-                dst,         // Destination matrix
-                1,           // Destination matrix row stride
-                cols,        // Number of columns in source/rows in destination
-                rows);       // Number of rows in source/columns in destination
-}
 
 int main() {
     // Dynamically allocate memory with 16-byte alignment for better performance
     posix_memalign((void**)&A, 16, N * N * sizeof(float));
     posix_memalign((void**)&B, 16, N * N * sizeof(float));
-    posix_memalign((void**)&B_trans, 16, N * N * sizeof(float));
     posix_memalign((void**)&C, 16, N * N * sizeof(float));
 
     // Initialize matrices
@@ -47,7 +38,7 @@ int main() {
     // https://developer.apple.com/documentation/accelerate/1449984-vdsp_mmul
     vDSP_mmul(A,
               1,
-              B_trans,
+              B,
               1, 
               C,
               1,
@@ -68,7 +59,6 @@ int main() {
     // Cleanup
     free(A);
     free(B);
-    free(B_trans);
     free(C);
 
     return 0;
