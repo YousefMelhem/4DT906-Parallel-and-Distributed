@@ -2,7 +2,7 @@
 import numpy as np
 
 
-N = 2048
+N = 1024*2
 
 if __name__ == "__main__":
     A = np.random.randn(N, N).astype(np.float32)

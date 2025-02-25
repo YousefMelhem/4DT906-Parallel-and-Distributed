@@ -57,13 +57,13 @@ void gemm_omp(){
                         C[bi + i][bj + j] += A[bi + i][bk + 1] * B_trans[bj + j][bk + 1];
                         C[bi + i][bj + j] += A[bi + i][bk + 2] * B_trans[bj + j][bk + 2];
                         C[bi + i][bj + j] += A[bi + i][bk + 3] * B_trans[bj + j][bk + 3];
-       
+
                     }
                 }
 }
 
 
-#define RUN_COUNT 10
+#define RUN_COUNT 15
 
 int main() {
     fetchMat();
