@@ -41,7 +41,6 @@ void fetchMat() {
     fclose(f);
 }
 
-
 void gemm_omp(){
     int bi, bj, bk, i, j, k;
     // Matrix multiplication using transposed B
@@ -53,7 +52,7 @@ void gemm_omp(){
 
                 for (i = 0; i < blockSize; i++) {
                     for (j = 0; j < blockSize; j++) {
-                        // Fully unrolled for blockSize = 16
+                        // Fully unrolled for blockSize = 4
                         C[bi + i][bj + j] += A[bi + i][bk + 0] * B_trans[bj + j][bk + 0];
                         C[bi + i][bj + j] += A[bi + i][bk + 1] * B_trans[bj + j][bk + 1];
                         C[bi + i][bj + j] += A[bi + i][bk + 2] * B_trans[bj + j][bk + 2];
@@ -62,7 +61,6 @@ void gemm_omp(){
                     }
                 }
 }
-
 
 
 #define RUN_COUNT 10
