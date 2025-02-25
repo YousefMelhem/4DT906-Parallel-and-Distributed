@@ -6,7 +6,7 @@
 using namespace std;
 
 const int N = 1024*2;
-const int blockSize = 16;
+const int blockSize = 4;
                   
 float A[N][N], B[N][N], B_trans[N][N], C[N][N], Cvals[N][N];
 
@@ -46,7 +46,7 @@ void gemm_omp(){
     int bi, bj, bk, i, j, k;
     // Matrix multiplication using transposed B
     // ading bi in the private loses me 3gflops
-    #pragma omp parallel for private(bj, bk, i, j, k) shared(A, B_trans, C)
+    #pragma omp parallel for private(bj, bk, i, j) shared(A, B_trans, C)
     for(bi=0; bi<N; bi+=blockSize)
         for(bj=0; bj<N; bj+=blockSize)
             for(bk=0; bk<N; bk+=blockSize)
@@ -58,18 +58,7 @@ void gemm_omp(){
                         C[bi + i][bj + j] += A[bi + i][bk + 1] * B_trans[bj + j][bk + 1];
                         C[bi + i][bj + j] += A[bi + i][bk + 2] * B_trans[bj + j][bk + 2];
                         C[bi + i][bj + j] += A[bi + i][bk + 3] * B_trans[bj + j][bk + 3];
-                        C[bi + i][bj + j] += A[bi + i][bk + 4] * B_trans[bj + j][bk + 4];
-                        C[bi + i][bj + j] += A[bi + i][bk + 5] * B_trans[bj + j][bk + 5];
-                        C[bi + i][bj + j] += A[bi + i][bk + 6] * B_trans[bj + j][bk + 6];
-                        C[bi + i][bj + j] += A[bi + i][bk + 7] * B_trans[bj + j][bk + 7];
-                        C[bi + i][bj + j] += A[bi + i][bk + 8] * B_trans[bj + j][bk + 8];
-                        C[bi + i][bj + j] += A[bi + i][bk + 9] * B_trans[bj + j][bk + 9];
-                        C[bi + i][bj + j] += A[bi + i][bk + 10] * B_trans[bj + j][bk + 10];
-                        C[bi + i][bj + j] += A[bi + i][bk + 11] * B_trans[bj + j][bk + 11];
-                        C[bi + i][bj + j] += A[bi + i][bk + 12] * B_trans[bj + j][bk + 12];
-                        C[bi + i][bj + j] += A[bi + i][bk + 13] * B_trans[bj + j][bk + 13];
-                        C[bi + i][bj + j] += A[bi + i][bk + 14] * B_trans[bj + j][bk + 14];
-                        C[bi + i][bj + j] += A[bi + i][bk + 15] * B_trans[bj + j][bk + 15];
+       
                     }
                 }
 }
@@ -90,6 +79,7 @@ int main() {
     clock_gettime(CLOCK_MONOTONIC, &end);
     #else
 
+    float avg = 0.0;
     for (int i = 0; i < RUN_COUNT; i++) {
         // Reset C to zero
         #pragma omp parallel for collapse(2)
@@ -102,11 +92,15 @@ int main() {
         clock_gettime(CLOCK_MONOTONIC, &start);
         gemm_omp();
         clock_gettime(CLOCK_MONOTONIC, &end);
+
         float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
         float gflops = (2.0 * N * N * N) / (1000000000.0 * time_taken);
+        avg += gflops;
         cout << "GFLOPS: " << fixed << setprecision(6) << gflops << endl;
 
     }
+
+    cout << "Average GFLOPS: " << fixed << setprecision(6) << avg / RUN_COUNT << endl;
     #endif
 
     #if RUN_COUNT == 1
