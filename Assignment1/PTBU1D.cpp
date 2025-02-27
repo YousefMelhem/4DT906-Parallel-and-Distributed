@@ -14,15 +14,20 @@ using namespace std;
 #endif
 
 #ifndef N
-  #define N 1024
+  #define N 1024*2
 #endif
 
 
 #define BLOCK_SIZE 4
 
-#define BLOCK_Y 8  // Process 4 rows at a time
+#define BLOCK_Y 16 // Process 4 rows at a time
 #define BLOCK_X 2  // Process 2 vectors at a time (8 elements total with NEON)
-#define BLOCK 4    // Elements per vector (for float32x4_t)
+
+// x1 st to 2
+// x2 set to 4
+// x4 set to 8
+#define BLOCK 8    // Elements per vector (for float32x4_t)
+
                   
 
 float A[N*N] __attribute__ ((aligned (32)));
@@ -93,7 +98,7 @@ void gemm_omp_neon() {
 }
 
 void gemm_omp_neonx2() {
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int y = 0; y < N; y += BLOCK_Y) {
         for (int x = 0; x < N; x += BLOCK * BLOCK_X) {
             // Initialize accumulators for 4x2 blocks
@@ -123,8 +128,9 @@ void gemm_omp_neonx2() {
     }
 }
 
+// does not work
 void gemm_omp_neonx4() {
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int y = 0; y < N; y += BLOCK_Y) {
         for (int x = 0; x < N; x += BLOCK * BLOCK_X) {
             // Initialize accumulators for 4x4 blocks
@@ -136,7 +142,7 @@ void gemm_omp_neonx4() {
                     float32x4_t a_vec = vdupq_n_f32(A[(y + iy) * N + k]);
 
                     // Load 4 vectors of 4 elements each from B (16 elements total)
-                    float32x4x4_t b_vec = vld1q_f32_x4(&BT[x * N + k]);
+                    float32x4x4_t b_vec = vld1q_f32_x4(&B[k * N + x]);
 
                     // Multiply and accumulate
                     acc[iy].val[0] = vfmaq_f32(acc[iy].val[0], a_vec, b_vec.val[0]);
@@ -215,7 +221,7 @@ int main() {
         }
 
         clock_gettime(CLOCK_MONOTONIC, &start);
-        gemm_omp_neonx2();
+        gemm_omp_neonx4();
         clock_gettime(CLOCK_MONOTONIC, &end);
 
         float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;

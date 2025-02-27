@@ -11,6 +11,6 @@ if __name__ == "__main__":
     Cvals = A @ B
 
     with open("/tmp/matmul", "wb") as f:
+        f.write(Cvals.data)
         f.write(A.data)
         f.write(B.data)
-        f.write(Cvals.data)
