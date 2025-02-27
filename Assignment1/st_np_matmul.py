@@ -6,18 +6,18 @@ with threadpool_limits(limits=1):
     # N = 4096
     N = 1024
 
-    A = np.random.random((N, N))
-    B = np.random.random((N, N))
+    A = np.random.random((N, N)).astype(np.float32)
+    B = np.random.random((N, N)).astype(np.float32)
 
-    start = monotonic()
+    avg = 0
+    itr = 10
+    for i in range(itr):
+        start = monotonic()
+        C = A @ B
+        end = monotonic()
+        s = end - start
+        flops = N*N*2*N / (s * 10**9)
+        print(f"GFLOPS: {flops:.2f}")
+        avg += flops
 
-    C = A @ B
-
-    end = monotonic()
-    s = end - start
-
-    print(f"GFLPOS: {((N*N*2*N) / (s * 10**9)):.6f}")
-    print("|")
-    print(f"t: {s:.6f}")
-    print("|")
-    print(f"N: {N}")
+    print(f"Average GFLOPS: {avg/itr:.2f}")

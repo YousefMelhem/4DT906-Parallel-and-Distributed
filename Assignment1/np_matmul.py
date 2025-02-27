@@ -4,9 +4,8 @@ from time import monotonic
 N = 2048*2
 
 
-A = np.random.random((N, N))
-B = np.random.random((N, N))
-
+A = np.random.random((N, N)).astype(np.float32)
+B = np.random.random((N, N)).astype(np.float32)
 
 itr = 10
 

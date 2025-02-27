@@ -2,13 +2,22 @@
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
+#include <cstdint>
+#include <omp.h>
+#include <arm_neon.h>
 
 using namespace std;
 
 const int N = 1024*2;
 const int blockSize = 4;
-                  
+
 float A[N][N], B[N][N], B_trans[N][N], C[N][N], Cvals[N][N];
+ 
+// float A[N][N] __attribute__((aligned(32)));;
+// float B[N][N] __attribute__((aligned(32)));;
+// float B_trans[N][N] __attribute__((aligned(32)));;
+// float C[N][N] __attribute__((aligned(32)));;
+// float Cvals[N][N] __attribute__((aligned(32)));;
 
 void transpose(float* src, float* dst, const int rows, const int cols) {
     for (int idx = 0; idx < rows * cols; idx++) {
@@ -20,6 +29,7 @@ void transpose(float* src, float* dst, const int rows, const int cols) {
 
 // check if the matrix is transposed correctly
 void print_matrix(float* matrix, const int rows, const int cols) {
+    cout << " " << endl;
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++)
             cout << matrix[i * cols + j] << " ";
@@ -43,14 +53,12 @@ void fetchMat() {
 
 void gemm_omp(){
     int bi, bj, bk, i, j, k;
-    // Matrix multiplication using transposed B
-    // ading bi in the private loses me 3gflops
     #pragma omp parallel for private(bj, bk, i, j) shared(A, B_trans, C)
     for(bi=0; bi<N; bi+=blockSize)
         for(bj=0; bj<N; bj+=blockSize)
             for(bk=0; bk<N; bk+=blockSize)
 
-                for (i = 0; i < blockSize; i++) {
+                for (i = 0; i < blockSize; i++) 
                     for (j = 0; j < blockSize; j++) {
                         // Fully unrolled for blockSize = 4
                         C[bi + i][bj + j] += A[bi + i][bk + 0] * B_trans[bj + j][bk + 0];
@@ -59,13 +67,13 @@ void gemm_omp(){
                         C[bi + i][bj + j] += A[bi + i][bk + 3] * B_trans[bj + j][bk + 3];
 
                     }
-                }
 }
 
 
 #define RUN_COUNT 15
 
 int main() {
+
     fetchMat();
     struct timespec start, end;
 
@@ -90,7 +98,7 @@ int main() {
         clock_gettime(CLOCK_MONOTONIC, &start);
         gemm_omp();
         clock_gettime(CLOCK_MONOTONIC, &end);
-
+        
         float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
         float gflops = (2.0 * N * N * N) / (1000000000.0 * time_taken);
         avg += gflops;
@@ -123,6 +131,8 @@ int main() {
             }
         }
     }
+
+    cout << "Output verified!" << endl;
 
     return 0;
 }
