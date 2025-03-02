@@ -4,7 +4,7 @@ from threadpoolctl import threadpool_limits
 
 with threadpool_limits(limits=1):
     # N = 4096
-    N = 1024
+    N = 1024*2
 
     A = np.random.random((N, N)).astype(np.float32)
     B = np.random.random((N, N)).astype(np.float32)

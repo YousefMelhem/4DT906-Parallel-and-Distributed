@@ -11,11 +11,11 @@ using namespace std;
 const int N = 1024*2;
 const int blockSize = 4;
 
-float A[N][N], B[N][N], B_trans[N][N], C[N][N], Cvals[N][N];
+float A[N][N], B[N][N], BT[N][N], C[N][N], Cvals[N][N];
  
 // float A[N][N] __attribute__((aligned(32)));;
 // float B[N][N] __attribute__((aligned(32)));;
-// float B_trans[N][N] __attribute__((aligned(32)));;
+// float BT[N][N] __attribute__((aligned(32)));;
 // float C[N][N] __attribute__((aligned(32)));;
 // float Cvals[N][N] __attribute__((aligned(32)));;
 
@@ -45,29 +45,28 @@ void fetchMat() {
         exit(1);
     }
     // the saved matricies in the order of A, B, C (has to match the order in gemm.py)
+    fread(Cvals, 1, sizeof(float)*N*N, f);
     fread(A, 1, sizeof(float)*N*N, f);
     fread(B, 1, sizeof(float)*N*N, f);
-    fread(Cvals, 1, sizeof(float)*N*N, f);
     fclose(f);
 }
 
 void gemm_omp(){
-    int bi, bj, bk, i, j, k;
-    #pragma omp parallel for private(bj, bk, i, j) shared(A, B_trans, C)
+    int bi, bk, bj, i, k, j;
+    #pragma omp parallel for private(bk, bj, i, k, j) shared(A, B, C)
     for(bi=0; bi<N; bi+=blockSize)
-        for(bj=0; bj<N; bj+=blockSize)
-            for(bk=0; bk<N; bk+=blockSize)
-
-                for (i = 0; i < blockSize; i++) 
-                    for (j = 0; j < blockSize; j++) {
-                        // Fully unrolled for blockSize = 4
-                        C[bi + i][bj + j] += A[bi + i][bk + 0] * B_trans[bj + j][bk + 0];
-                        C[bi + i][bj + j] += A[bi + i][bk + 1] * B_trans[bj + j][bk + 1];
-                        C[bi + i][bj + j] += A[bi + i][bk + 2] * B_trans[bj + j][bk + 2];
-                        C[bi + i][bj + j] += A[bi + i][bk + 3] * B_trans[bj + j][bk + 3];
-
+        for(bk=0; bk<N; bk+=blockSize)
+            for(bj=0; bj<N; bj+=blockSize)
+                for(i=0; i<blockSize; i++)
+                    for(k=0; k<blockSize; k++) {
+                        float a_val = A[bi + i][bk + k];
+                        #pragma vector always
+                        for(j=0; j<blockSize; j++) {
+                            C[bi + i][bj + j] += a_val * B[bk + k][bj + j];
+                        }
                     }
 }
+
 
 
 #define RUN_COUNT 15
@@ -77,7 +76,7 @@ int main() {
     fetchMat();
     struct timespec start, end;
 
-    transpose(&B[0][0], &B_trans[0][0], N, N);
+    transpose(&B[0][0], &BT[0][0], N, N);
 
     #if RUN_COUNT == 1
     clock_gettime(CLOCK_MONOTONIC, &start);

@@ -13,13 +13,11 @@ if [ ! -f "$FILE" ]; then
   exit 1
 fi
 
-
-
 NAME=$(basename "$FILE" .cpp)
 
 if [ "$NAME" = "accelerate" ]; then
   clang++ -O3 -DACCELRATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64 "$FILE" -framework Accelerate -o compiled/"$NAME" && ./compiled/"$NAME"
 else
-  clang++ "$FILE" -mfma -std=c++17 -mfma -Xpreprocessor -fopenmp -O3 -march=native -mcpu=native -ffast-math  \
-    -I/opt/homebrew/include -L/opt/homebrew/lib -lomp -o compiled/"$NAME" && ./compiled/"$NAME"
+  clang++ "$FILE" -O3 -march=native -mcpu=native -ftree-vectorize -ffast-math -Xpreprocessor -fopenmp \
+    -I/opt/homebrew/include -L/opt/homebrew/lib -lomp -DDEBUG -o compiled/"$NAME" && ./compiled/"$NAME"
 fi
