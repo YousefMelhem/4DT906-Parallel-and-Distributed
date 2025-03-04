@@ -8,8 +8,7 @@
 
 using namespace std;
 
-const int N = 1024*2;
-const int blockSize = 4;
+const int N = 2048;
 
 float A[N][N], B[N][N], BT[N][N], C[N][N], Cvals[N][N];
  
@@ -51,23 +50,51 @@ void fetchMat() {
     fclose(f);
 }
 
-void gemm_omp(){
+
+const int BLOCKSIZE = 4;
+
+
+void gemm_omp_ikj() {
     int bi, bk, bj, i, k, j;
+
     #pragma omp parallel for private(bk, bj, i, k, j) shared(A, B, C)
-    for(bi=0; bi<N; bi+=blockSize)
-        for(bk=0; bk<N; bk+=blockSize)
-            for(bj=0; bj<N; bj+=blockSize)
-                for(i=0; i<blockSize; i++)
-                    for(k=0; k<blockSize; k++) {
+    for(bi = 0; bi < N; bi += BLOCKSIZE)
+        for(bk = 0; bk < N; bk += BLOCKSIZE)
+            for(bj = 0; bj < N; bj += BLOCKSIZE)
+
+                for(i = 0; i < BLOCKSIZE; i++)
+                    for(k = 0; k < BLOCKSIZE; k++) {
                         float a_val = A[bi + i][bk + k];
-                        #pragma vector always
-                        for(j=0; j<blockSize; j++) {
-                            C[bi + i][bj + j] += a_val * B[bk + k][bj + j];
+                        #pragma omp simd
+                        for(j = 0; j < BLOCKSIZE; j+=2) {
+                            C[bi + i][bj + j + 0] += a_val * B[bk + k][bj + j + 0];
+                            C[bi + i][bj + j + 1] += a_val * B[bk + k][bj + j + 1];
                         }
                     }
 }
 
+void gemm_omp_ikj_neon() {
+    int bi, bk, bj, i, k, j;
 
+    #pragma omp parallel for private(bk, bj, i, k, j) shared(A, B, C)
+    for(bi = 0; bi < N; bi += BLOCKSIZE)
+        for(bk = 0; bk < N; bk += BLOCKSIZE)
+            for(bj = 0; bj < N; bj += BLOCKSIZE)
+
+                for(i = 0; i < BLOCKSIZE; i++)
+                    for(k = 0; k < BLOCKSIZE; k++) {
+                        float32x4_t a_vec = vdupq_n_f32(A[bi + i][bk + k]);
+
+                        for(j = 0; j < BLOCKSIZE; j += 4) {
+                            float32x4_t b_vec = vld1q_f32(&B[bk + k][bj + j]);
+                            float32x4_t c_vec = vld1q_f32(&C[bi + i][bj + j]);
+
+                            c_vec = vfmaq_f32(c_vec, a_vec, b_vec);
+                            vst1q_f32(&C[bi + i][bj + j], c_vec);
+                        }
+
+                    }
+}
 
 #define RUN_COUNT 15
 
@@ -95,7 +122,7 @@ int main() {
         }
 
         clock_gettime(CLOCK_MONOTONIC, &start);
-        gemm_omp();
+        gemm_omp_ikj_neon();
         clock_gettime(CLOCK_MONOTONIC, &end);
         
         float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
