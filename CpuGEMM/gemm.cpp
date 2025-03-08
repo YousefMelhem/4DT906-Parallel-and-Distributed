@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <cstdint>
 #include <omp.h>
+#include <arm_neon.h>
 
 using namespace std;
 
@@ -63,7 +64,6 @@ void gemm_omp_ikj() {
                     }
 }
 
-#include <arm_neon.h>
 
 void gemm_omp_ikj_neon() {
     int bi, bk, bj, i, k, j;
