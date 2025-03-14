@@ -44,7 +44,33 @@ void fetchMat() {
 }
 
 
-const int BLOCKSIZE = 4;
+#define BLOCKSIZE 4
+
+void gemm_omp_ikj_neon() {
+    int bi, bk, bj, i, k, j;
+
+    #pragma omp parallel for private(bk, bj, i, k, j) shared(A, B, C)
+    for(bi = 0; bi < N; bi += BLOCKSIZE)
+        for(bk = 0; bk < N; bk += BLOCKSIZE)
+            for(bj = 0; bj < N; bj += BLOCKSIZE)
+
+                for(i = 0; i < BLOCKSIZE; i++)
+                    for(k = 0; k < BLOCKSIZE; k++) {
+                        float a_val = A[bi + i][bk + k];
+
+                        float32x4_t a_vec = vdupq_n_f32(a_val);
+                        
+                        for(j = 0; j < BLOCKSIZE; j+=4) {
+                            float32x4_t b_vec = vld1q_f32(&B[bk + k][bj + j]);
+                            float32x4_t c_vec = vld1q_f32(&C[bi + i][bj + j]);
+                            c_vec = vmlaq_f32(c_vec, a_vec, b_vec);
+                            
+                            vst1q_f32(&C[bi + i][bj + j], c_vec);
+                        }
+
+                    }
+}
+
 
 void gemm_omp_ikj() {
     int bi, bk, bj, i, k, j;
@@ -63,33 +89,6 @@ void gemm_omp_ikj() {
                         }
                     }
 }
-
-
-void gemm_omp_ikj_neon() {
-    int bi, bk, bj, i, k, j;
-
-    #pragma omp parallel for private(bk, bj, i, k, j) shared(A, B, C)
-    for(bi = 0; bi < N; bi += BLOCKSIZE)
-        for(bk = 0; bk < N; bk += BLOCKSIZE)
-            for(bj = 0; bj < N; bj += BLOCKSIZE)
-
-                for(i = 0; i < BLOCKSIZE; i++)
-                    for(k = 0; k < BLOCKSIZE; k++) {
-                        float a_val = A[bi + i][bk + k];
-
-                        float32x4_t a_vec = vdupq_n_f32(a_val);
-                        
-                        for(j = 0; j < BLOCKSIZE; j+=8) {
-                            float32x4_t b_vec = vld1q_f32(&B[bk + k][bj + j]);
-                            float32x4_t c_vec = vld1q_f32(&C[bi + i][bj + j]);
-                            c_vec = vmlaq_f32(c_vec, a_vec, b_vec);
-                            
-                            vst1q_f32(&C[bi + i][bj + j], c_vec);
-                        }
-
-                    }
-}
-
 
 #define RUN_COUNT 15
 
