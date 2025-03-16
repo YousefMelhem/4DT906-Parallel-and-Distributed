@@ -60,6 +60,7 @@ void gemm_omp_ikj_neon() {
 
                         float32x4_t a_vec = vdupq_n_f32(a_val);
                         
+                        #pragma unroll(4)
                         for(j = 0; j < BLOCKSIZE; j+=4) {
                             float32x4_t b_vec = vld1q_f32(&B[bk + k][bj + j]);
                             float32x4_t c_vec = vld1q_f32(&C[bi + i][bj + j]);
@@ -83,9 +84,10 @@ void gemm_omp_ikj() {
                 for(i = 0; i < BLOCKSIZE; i++)
                     for(k = 0; k < BLOCKSIZE; k++) {
                         float a_val = A[bi + i][bk + k];
-                        for(j = 0; j < BLOCKSIZE; j+=2) {
-                            C[bi + i][bj + j + 0] += a_val * B[bk + k][bj + j + 0];
-                            C[bi + i][bj + j + 1] += a_val * B[bk + k][bj + j + 1];
+
+                        #pragma unroll(4)
+                        for(j = 0; j < BLOCKSIZE; j+=1) {
+                            C[bi + i][bj + j] += a_val * B[bk + k][bj + j];
                         }
                     }
 }
@@ -114,7 +116,7 @@ int main() {
         }
 
         clock_gettime(CLOCK_MONOTONIC, &start);
-        gemm_omp_ikj_neon();
+        gemm_omp_ikj();
         clock_gettime(CLOCK_MONOTONIC, &end);
         
         float time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
