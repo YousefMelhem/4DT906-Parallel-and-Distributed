@@ -49,7 +49,7 @@ void fetchMat() {
 void gemm_omp_ikj_neon() {
     int bi, bk, bj, i, k, j;
 
-    #pragma omp parallel for private(bk, bj, i, k, j) shared(A, B, C)
+    #pragma omp parallel for
     for(bi = 0; bi < N; bi += BLOCKSIZE)
         for(bk = 0; bk < N; bk += BLOCKSIZE)
             for(bj = 0; bj < N; bj += BLOCKSIZE)
