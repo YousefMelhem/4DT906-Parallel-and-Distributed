@@ -10,13 +10,11 @@ using namespace std;
 
 const int N = 2048;
 
-// float A[N][N], B[N][N], C[N][N], Cvals[N][N];
- 
-float A[N][N] __attribute__((aligned(64)));;
-float B[N][N] __attribute__((aligned(64)));;
-float BT[N][N] __attribute__((aligned(64)));;
-float C[N][N] __attribute__((aligned(64)));;
-float Cvals[N][N] __attribute__((aligned(64)));;
+float A[N][N] __attribute__((aligned(32)));;
+float B[N][N] __attribute__((aligned(32)));;
+float BT[N][N] __attribute__((aligned(32)));;
+float C[N][N] __attribute__((aligned(32)));;
+float Cvals[N][N] __attribute__((aligned(32)));;
 
 
 // check if the matrix is transposed correctly
