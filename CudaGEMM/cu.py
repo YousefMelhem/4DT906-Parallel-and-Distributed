@@ -24,3 +24,5 @@ gflops = (flops / (elapsed_time * 1e9))  # Convert to GFLOPS
 
 print(f"CuPy/cuBLAS GEMM Performance: {gflops:.2f} GFLOPS")
 
+
+
