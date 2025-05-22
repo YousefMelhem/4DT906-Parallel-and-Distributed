@@ -2,7 +2,7 @@ import cupy as cp
 import time
 
 # Matrix size (must be power of two)
-N = 1024*8
+N = 1024*2
 
 # Create random matrices
 A = cp.random.rand(N, N).astype(cp.float32)
