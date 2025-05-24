@@ -12,6 +12,8 @@ echo -e "\nRunning benchmarks...\n"
 echo "=== Naive Implementation ==="
 ./compiled/matmul_naive
 
+
+
 echo -e "\n=== Basic Tiled Implementation ==="
 ./compiled/matmul_tiled_basic
 

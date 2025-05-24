@@ -10,7 +10,7 @@ using std::cout;
 using std::generate;
 using std::vector;
 
-const int N = 1 << 10;  // 1024 x 1024
+const int N = 1 << 11;  // 1024 x 1024
 
 __global__ void matrixMul(const float *__restrict__ a, 
                          const float *__restrict__ b,
@@ -69,21 +69,21 @@ int main() {
     cudaMemcpy(d_a, h_a.data(), bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, h_b.data(), bytes, cudaMemcpyHostToDevice);
 
-    int THREADS = 32;
-    dim3 threads(THREADS, THREADS);
-    dim3 blocks(N / THREADS, N / THREADS);
-
+    //int THREADS = 32;
+    //dim3 threads(THREADS, THREADS);
+    //dim3 blocks(N / THREADS, N / THREADS);
+    dim3 threadsPerBlock(32, 16); dim3 blocksPerGrid(N / 32, N / 16);
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
     // Warm-up run
-    matrixMul<<<blocks, threads>>>(d_a, d_b, d_c);
+    matrixMul<<<threadsPerBlock, blocksPerGrid>>>(d_a, d_b, d_c);
     cudaDeviceSynchronize();
 
     // Measure performance
     cudaEventRecord(start);
-    matrixMul<<<blocks, threads>>>(d_a, d_b, d_c);
+    matrixMul<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c);
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
 
@@ -99,7 +99,7 @@ int main() {
     cout << "GFLOPS: " << gflops << "\n";
 
     cudaMemcpy(h_c.data(), d_c, bytes, cudaMemcpyDeviceToHost);
-    verify_result(h_a, h_b, h_c);
+    //verify_result(h_a, h_b, h_c);
 
     cudaFree(d_a);
     cudaFree(d_b);

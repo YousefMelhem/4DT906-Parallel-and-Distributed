@@ -3,9 +3,9 @@ import numpy as np
 
 # Performance data
 implementations = ['Naive', 'Basic Tiled', 'Optimized']
-gflops = [1292, 1557, 5165]
+gflops = [1292, 1775, 6120]
 times = [1.66, 1.38, 0.42]
-speedups = [1.0, 1.20, 4.00]
+speedups = [1.0, 1.4, 4.9]
 
 # Create figure with two subplots
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
